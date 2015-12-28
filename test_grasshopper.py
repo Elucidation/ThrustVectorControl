@@ -1,25 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# C++ version Copyright (c) 2006-2007 Erin Catto http://www.box2d.org
-# Python version Copyright (c) 2010 kne / sirkne at gmail dot com
-# 
-# Implemented using the pybox2d SWIG interface for Box2D (pybox2d.googlecode.com)
-# 
-# This software is provided 'as-is', without any express or implied
-# warranty.  In no event will the authors be held liable for any damages
-# arising from the use of this software.
-# Permission is granted to anyone to use this software for any purpose,
-# including commercial applications, and to alter it and redistribute it
-# freely, subject to the following restrictions:
-# 1. The origin of this software must not be misrepresented; you must not
-# claim that you wrote the original software. If you use this software
-# in a product, an acknowledgment in the product documentation would be
-# appreciated but is not required.
-# 2. Altered source versions must be plainly marked as such, and must not be
-# misrepresented as being the original software.
-# 3. This notice may not be removed or altered from any source distribution.
-
+# Basic TVC combined controller using 3 PD controllers.
+# Based off of simple pygame framework by kne / sirkne at gmail dot com
 from framework import *
 from math import pi, sin, cos
 from random import random
@@ -163,22 +146,12 @@ class Grasshopper(Framework):
         # PD controller for altitude
         pos_error = goalPos.y - pos.y
         vel_error = 0 - self.ship.linearVelocity.y
-        # self.altitude_mean_error = pos_error * self.alpha[0] + (1-self.alpha[0]) * self.altitude_mean_error
-        # self.altitude_mean_error += pos_error
-        # self.altitude_mean_error = clamp(self.altitude_mean_error, -100, 100)
 
         pid_values['altitude'].p = self.settings.altitude_p/100.
         pid_values['altitude'].d = self.settings.altitude_d/100.
         force_mag = pid_values['altitude'].p*pos_error + \
                     pid_values['altitude'].d*vel_error + \
                     self.ship.mass*10 / self.max_tvc_thrust_mult # gravity bias
-                    # pid_values['altitude'].i*self.altitude_mean_error * 10
-
-        # print "P(%.2g) + I(%.2g) + D(%.2g) = %.2g" % \
-        #     (pid_values['altitude'].p*pos_error,
-        #      pid_values['altitude'].i*self.altitude_mean_error,
-        #      pid_values['altitude'].d*vel_error,
-        #      force_mag)
 
         force_mag = clamp(force_mag * self.max_tvc_thrust_mult, 0, self.max_tvc_thrust)
 
@@ -192,7 +165,6 @@ class Grasshopper(Framework):
         # Values must be converted from 0-100 to whatever.
         pid_values['lateral drift'].p = self.settings.lateral_p/20.
         pid_values['lateral drift'].d = self.settings.lateral_d/20.
-        #print "Lateral:",pid_values['lateral drift']
 
         tvc_offset = (lat_error*pid_values['lateral drift'].p + \
                       lat_vel_error*pid_values['lateral drift'].d) * -pi/180.0
